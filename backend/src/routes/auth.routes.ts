@@ -15,8 +15,8 @@ const router = Router();
 router.post('/', createUser);
 router.get('/', getAllUsers);
 router.get('/:id', getUserById);
-router.post('/', getUserByEmail);
+router.post("/email", getUserByEmail);
 
 
-
+ 
 export default router;

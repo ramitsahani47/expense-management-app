@@ -64,7 +64,8 @@ export const getUserById = async (req: Request, res: Response) => {
 
 export const getUserByEmail = async (req: Request, res: Response) => {
     // const email = String(req.params.email);
-    const {email} = req.body
+    const { email } = req.body;
+
 
     const user = await usersService.getUserByEmail(email);
 

@@ -1,6 +1,5 @@
 
 
-import { email } from "zod";
 import * as usersRepository from "../repositories/auth.repository";
 
 

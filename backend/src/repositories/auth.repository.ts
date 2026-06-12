@@ -1,4 +1,4 @@
-import { email } from "zod";
+
 import  {pool} from "../config/db"
 
 export const createUser = async (
