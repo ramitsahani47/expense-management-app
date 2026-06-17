@@ -2,22 +2,19 @@
 import * as expenseRepository from "../repositories/expense.repository"
 
 
-export const getExpenses = async () => {
+export const getExpenses = async (user_id:number) => {
      console.log("Service Hit");
-    return expenseRepository.findAllExpense();
+    return expenseRepository.findAllExpense(user_id);
 }
  
 
 export const createExpense = async (
     title: string,
     amount: number,
-    category: string
+    category: string,
+    user_id : number
 ) => {
-    return expenseRepository.createExpense(
-        title,
-        amount,
-        category
-    );
+    return expenseRepository.createExpense(title, amount, category, user_id);
 };
 
 export const getExpenseById = async (

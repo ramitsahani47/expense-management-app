@@ -1,8 +1,8 @@
 import { pool } from "../config/db";
 
-export const findAllExpense = async () => {
+export const findAllExpense = async (user_id:number) => {
   console.log("Repository Hit");
-  const result = await pool.query("SELECT * FROM expenses ORDER BY id DESC");
+  const result = await pool.query("SELECT * FROM expenses WHERE user_id = $1",[user_id]);
 
   return result.rows;
 };
@@ -10,19 +10,20 @@ export const findAllExpense = async () => {
 export const createExpense = async (
     title: string,
     amount: number,
-    category: string
+    category: string,
+    user_id:number
 ) => {
     const result = await pool.query(
-        `INSERT INTO expenses
-        (title , amount , category)
-        VALUES ($1 , $2, $3)
+      `INSERT INTO expenses
+        (title , amount , category,user_id)
+        VALUES ($1 , $2, $3 , $4)
         RETURNING *
         `,
-        [title, amount, category]
+      [title, amount, category, user_id],
     );
 
      return result.rows[0];
-};
+}; 
 
 
 export const findExpenseById = async (

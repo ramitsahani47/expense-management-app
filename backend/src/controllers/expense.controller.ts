@@ -8,7 +8,11 @@ import ApiError from "../utils/ApiError";
 export const getExpenses = async (req: Request, res: Response) => {
   console.log("Controller Hit");
 
-  const expenses = await expenseService.getExpenses();
+  const user = (req as any).user;
+  const user_id = (req as any).user.id;
+  console.log(user)
+
+  const expenses = await expenseService.getExpenses(user_id);
   res.status(200).json(
     new ApiResponse(
       true,
@@ -21,14 +25,15 @@ export const getExpenses = async (req: Request, res: Response) => {
 export const createExpense = async (req: Request, res: Response) => {
   try {
     const { title, amount, category } = req.body;
-    const expense = await expenseService.createExpense(title, amount, category);
-    res.status(201).json(
-      new ApiResponse(
-        true,
-        "Expense created successfully",
-        expense
-      )
-    );
+
+    // Logged-in user id from JWT
+    const user_id = (req as any).user.id;
+
+
+    const expense = await expenseService.createExpense(title, amount, category,user_id);
+    res
+      .status(201)
+      .json(new ApiResponse(true, "Expense created successfully", expense));
   } catch (error) {
     console.log(error);
     res.status(400).json(error);

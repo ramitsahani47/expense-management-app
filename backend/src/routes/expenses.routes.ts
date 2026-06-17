@@ -6,12 +6,14 @@ import { getExpenses, createExpense, getExpenseById, updateExpense, deleteExpens
 import { createExpenseSchema } from '../validations/expense.validation';
 import { validate } from '../middlewares/validate.middleware';
 import { asyncHandler } from '../utils/asyncHandler';
+import { authMiddleware } from "../middlewares/auth.middleware";
+
 
 
 const router = Router();
 
-router.get('/', getExpenses);
-router.post('/',validate(createExpenseSchema), createExpense);
+router.get('/',authMiddleware, getExpenses);
+router.post('/',authMiddleware ,validate(createExpenseSchema), createExpense);
 router.get("/:id", asyncHandler(getExpenseById));
 router.put('/:id', updateExpense);
 router.delete('/:id', deleteExpense);

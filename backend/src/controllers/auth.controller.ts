@@ -84,3 +84,22 @@ export const getUserByEmail = async (req: Request, res: Response) => {
         )
     );
 };
+
+
+
+export const login = async (
+    req: Request,
+    res: Response
+) => {
+    const { email, password } = req.body;
+
+    const user = await usersService.login(email, password);
+
+    return res.status(200).json(
+        new ApiResponse(
+            true,
+            "Login successfull",
+            user
+        )
+    )
+};
