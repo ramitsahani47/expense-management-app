@@ -41,11 +41,55 @@ export const getUserById = async (id: number) => {
 };
 
 
-export const getUserByEmail =  async (email: string) => {
+export const getUserByEmail = async (email: string) => {
     const result = await pool.query(
         `SELECT * from users where email = $1`,
         [email]
     );
 
     return result.rows[0];
-}
+};
+
+
+export const saveRefreshToken = async (
+    user_id: number,
+    refresh_token: string
+) => {
+    
+    await pool.query(
+        `UPDATE users
+        SET refresh_token = $1
+        WHERE id = $2
+       `,
+        [refresh_token, user_id]
+    )
+};
+
+
+export const getUserByRefreshToken = async (
+    refresh_token: string
+) => {
+    const result = await pool.query(
+        `
+        SELECT * FROM users
+         WHERE refresh_token = $1
+        `,
+        [refresh_token]
+    );
+
+    return result.rows[0];
+};
+
+
+export const clearRefreshToken = async (
+    user_id: number
+) => {
+    await pool.query(
+        `
+        UPDATE users
+        SET refresh_token = null
+        WHERE id = $1
+        `,
+        [user_id]
+    );
+};

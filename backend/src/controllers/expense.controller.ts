@@ -12,13 +12,47 @@ export const getExpenses = async (req: Request, res: Response) => {
   const user_id = (req as any).user.id;
   console.log(user)
 
-  const expenses = await expenseService.getExpenses(user_id);
+
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 5;
+
+
+  // NEW 
+  const search = String(req.query.search || "");
+
+
+  // new 
+  const category = String(req.query.category || "") 
+
+  
+  // new 
+  const sort = String(req.query.sort || "latest")
+
+
+  const result = await expenseService.getExpenses(
+    user_id,
+    page,
+    limit,
+    search,
+    category,
+    sort
+  );
+
+const totalPages = Math.ceil(result.totalRecords/limit);
+
   res.status(200).json(
     new ApiResponse(
       true,
       "Expenses fetched successfully",
-      expenses
-    )
+      {
+        expenses: result.expenses,
+        pagination: {
+          page,
+          limit,
+          totalRecords: result.totalRecords,
+          totalPages
+        }
+    }),
   );
 };
 
@@ -131,3 +165,42 @@ export const deleteExpense = async (req: Request, res: Response) => {
     );
   }
 };
+
+
+
+export const getDashboardStatus = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    console.log("Dashboard Controller Hit");
+    console.log((req as any).user);
+   const user_id = (req as any).user.id;
+   const status = await expenseService.getDashboardStatus(user_id);
+
+   return res
+     .status(200)
+     .json(new ApiResponse(true, "Dashboard fetched successfully", status));
+ } catch (error) {
+   console.log(error)
+   return res.status(500).json(error)
+ }
+};
+
+
+export const getMonthlySummary = async(
+  req: Request,
+  res:Response
+) => {
+  const user_id = (req as any).user.id;
+
+  const summary = await expenseService.getMonthlySummary(user_id);
+
+  return res.status(200).json(
+    new ApiResponse(
+      true,
+      "Monthly summary fetched successfully",
+      summary
+    )
+  )
+}

@@ -36,11 +36,13 @@ export const getUserByEmail = async (email: string) => {
 };
 
 
-export const login = async(
+export const login = async (
     email: string,
-    password : string
+    password: string
 ) => {
     const user = await usersRepository.getUserByEmail(email);
+
+
     if (!user) {
         throw new ApiError(
             401,
@@ -57,23 +59,88 @@ export const login = async(
         )
     };
 
-    const token = jwt.sign(
+    const accessToken = jwt.sign(
         {
             id: user.id,
-            email:user.email
+            email: user.email
         }
         ,
         process.env.JWT_SECRET as string,
         {
-            expiresIn:"1d"
+            expiresIn: "15min"
+        }
+    );
+
+
+    const refreshToken = jwt.sign(
+        {
+            id: user.id
+        },
+        process.env.JWT_SECRET as string,
+        {
+            expiresIn: "7d"
         }
     )
 
-    const { password: _, ...userWithoutPassword } = user;
+    await usersRepository.saveRefreshToken(user.id, refreshToken)
+
+    const { password: _, refresh_token, ...userWithoutPassword } = user;
 
 
     return {
         user: userWithoutPassword,
-        token
+        accessToken,
+        refreshToken
     };
-}
+};
+
+
+
+
+export const refreshAccessToken = async (
+    refresh_token: string
+) => {
+    // verify refresh token
+
+    const decoded = jwt.verify(
+        refresh_token,
+        process.env.JWT_SECRET as string,
+    ) as jwt.JwtPayload;
+
+
+    // check whether token exist in db or not
+    const user = await usersRepository.getUserById(decoded.id);
+
+    if (!user) {
+        throw new ApiError(
+            401,
+            "Invalid Refresh Token"
+        );
+    }
+
+
+    // generate new access token
+    const accessToken = jwt.sign(
+        {
+            id: user.id,
+            email: user.email
+        },
+        process.env.JWT_SECRET as string,
+        {
+            expiresIn: "15min"
+        }
+
+    );
+
+
+    return {
+        accessToken
+    };
+};
+
+
+export const logout = async (
+    user_id: number
+) => {
+    await usersRepository.clearRefreshToken(user_id)
+};

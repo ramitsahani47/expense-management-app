@@ -1,10 +1,63 @@
 import { pool } from "../config/db";
 
-export const findAllExpense = async (user_id:number) => {
+export const findAllExpense = async (
+  user_id: number,
+  page: number,
+  limit: number,
+  search: string,
+  category: string,
+  sort:string
+) => {
   console.log("Repository Hit");
-  const result = await pool.query("SELECT * FROM expenses WHERE user_id = $1",[user_id]);
+    const offset = (page - 1) * limit;
+    
+    let orderBy = "created DESC";
 
-  return result.rows;
+
+    if (sort === "amount_asc") {
+        orderBy = "amount ASC"
+    } else if (sort === "amount_desc") {
+        orderBy = "amount DESC"
+    } else if (sort === "latest") {
+       orderBy = "created_at DESC"
+    } else if (sort ="oldest") {
+       orderBy = "created_at ASC"
+    }
+
+  const result = await pool.query(
+    `
+        SELECT * FROM expenses WHERE user_id = $1
+        AND title ILIKE $2
+        AND category ILIKE $3
+        ORDER BY ${orderBy}
+        LIMIT $4
+        OFFSET $5
+        `,
+    [user_id, `%${search}%`, `%${category}%`, limit, offset],
+    );
+    
+
+    const countResult = await pool.query(
+        `
+        SELECT COUNT(*) AS total
+        FROM expenses
+        WHERE user_id = $1
+        AND title ILIKE $2
+        AND category ILIKE $3
+        `,
+        [
+            user_id,
+            `%${search}`,
+            `%${category}`
+        ]
+    )
+
+    return {
+        expenses: result.rows,
+        totalRecords: Number(
+            countResult.rows[0].total
+        )
+  };
 };
 
 export const createExpense = async (
@@ -61,8 +114,8 @@ export const updateExpense = async (
 };
 
 
-export const deleteExpense = async(
-    id:number
+export const deleteExpense = async (
+    id: number
 ) => {
     const result = await pool.query(
         `DELETE FROM expenses 
@@ -73,4 +126,48 @@ export const deleteExpense = async(
     );
 
     return result.rows[0];
-}
+};
+
+
+export const getDashboardStatus = async (
+    user_id: number
+) => {
+    const result = await pool.query(
+        `
+        SELECT
+           COUNT(*) AS total_transactions,
+           COALESCE(SUM(amount),0) AS total_expenses,
+           COALESCE(MAX(amount),0) AS highest_expense,
+           COALESCE(MIN(amount),0) AS lowest_expense,
+           COALESCE(AVG(amount),0) AS average_expense
+
+         FROM expenses
+         WHERE user_id = $1  
+        `,
+        [user_id]
+    );
+
+    return result.rows[0];
+};
+
+
+
+export const getMonthlySummary = async (
+    user_id: number
+) => {
+    const result = await pool.query(
+        `
+        SELECT
+            TO_CHAR(created_at , 'YYYY-MM') AS month ,
+            SUM(amount) AS total_expenses
+        FROM expenses
+        WHERE user_id = $1
+        GROUP BY month
+        ORDER BY month ASC 
+        `,
+        [user_id]
+    );
+
+    return result.rows
+};
+

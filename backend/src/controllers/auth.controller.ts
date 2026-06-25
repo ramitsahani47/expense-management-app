@@ -86,7 +86,7 @@ export const getUserByEmail = async (req: Request, res: Response) => {
 };
 
 
-
+ 
 export const login = async (
     req: Request,
     res: Response
@@ -103,3 +103,41 @@ export const login = async (
         )
     )
 };
+
+
+export const refreshToken = async (
+    req: Request,
+    res: Response
+) => {
+    const { refresh_token } = req.body;
+
+    const data = await usersService.refreshAccessToken(refresh_token);
+
+    return res.status(200).json(
+        new ApiResponse(
+            true,
+            "Access token refreshed",
+            data
+        )
+    );
+};
+
+
+
+export const logout = async(
+    req: Request,
+    res:Response
+) => {
+    const user_id = (req as any).user.id;
+
+    await usersService.logout(user_id);
+
+
+    return res.status(200).json(
+        new ApiResponse(
+            true,
+            "Logout successful",
+            null
+        )
+    )
+}
